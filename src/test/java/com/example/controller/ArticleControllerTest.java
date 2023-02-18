@@ -30,7 +30,6 @@ class ArticleControllerTest {
                 .andExpect(view().name("articles/index")) // 반환되는 뷰의 이름 확인
                 .andExpect(model().attributeExists("articles"));// View로 넘기는 Model에 "articles"라는 이름의 key가 있는지
     }
-    @Disabled
     @DisplayName("[view][GET] 게시글 상세 페이지 - 정상 호출")
     @Test
     public void giveNothing_whenRequestingArticleView_thenReturnsArticleView() throws Exception {
