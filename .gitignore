@@ -38,3 +38,6 @@ out/
 
 ### query dsl ###
 /src/main/generated
+
+## JPA Buddy ###
+.jpb
