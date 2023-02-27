@@ -1,13 +1,8 @@
 package com.example.domain;
 
 import lombok.*;
-import org.springframework.data.annotation.CreatedBy;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedBy;
-import org.springframework.data.annotation.LastModifiedDate;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
 import java.util.Objects;
 
 
@@ -19,7 +14,6 @@ import java.util.Objects;
         @Index(columnList = "createdBy")
 })
 @Entity
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ArticleComment extends AuditingFields {
 
     @Id
@@ -31,18 +25,24 @@ public class ArticleComment extends AuditingFields {
     private Article article;
 
     @Setter
+    @ManyToOne(optional = false)
+    private UserAccount userAccount;
+
+    @Setter
     @Column(nullable = false, length = 500)
     private String content;
 
-    private ArticleComment(Article article, String content) {
+    protected ArticleComment() {}
+
+    private ArticleComment(Article article, UserAccount userAccount, String content) {
         this.article = article;
+        this.userAccount = userAccount;
         this.content = content;
     }
 
-    public static ArticleComment of(Article article, String content) {
-        return new ArticleComment(article, content);
+    public static ArticleComment of(Article article, UserAccount userAccount, String content) {
+        return new ArticleComment(article, userAccount, content);
     }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
