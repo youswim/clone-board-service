@@ -3,11 +3,11 @@ package com.example.repository;
 
 import com.example.config.JpaConfig;
 import com.example.domain.Article;
+import com.example.domain.UserAccount;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
@@ -25,11 +25,13 @@ class JpaRepositoryTest {
     private final ArticleRepository articleRepository;
 
     private final ArticleCommentRepository articleCommentRepository;
+    private final UserAccountRepository userAccountRepository;
 
     @Autowired
-    JpaRepositoryTest(ArticleRepository articleRepository, ArticleCommentRepository articleCommentRepository) {
+    JpaRepositoryTest(ArticleRepository articleRepository, ArticleCommentRepository articleCommentRepository, UserAccountRepository userAccountRepository) {
         this.articleRepository = articleRepository;
         this.articleCommentRepository = articleCommentRepository;
+        this.userAccountRepository = userAccountRepository;
     }
 
     @DisplayName("select 테스트")
@@ -47,7 +49,7 @@ class JpaRepositoryTest {
 
         long prevCount = articleRepository.count();
 
-        Article save = articleRepository.save(Article.of("hello", "cont", "#test"));
+        Article save = articleRepository.save(Article.of(UserAccount.of("atsdt", "123", "hel@g.c", "spongebobo", "daepa"), "hello", "cont", "#test"));
         System.out.println(save.getId());
 
         Assertions.assertThat(articleRepository.count()).isEqualTo(prevCount + 1);
