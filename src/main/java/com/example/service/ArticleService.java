@@ -1,15 +1,20 @@
 package com.example.service;
 
+import com.example.domain.Article;
 import com.example.dto.ArticleDto;
 import com.example.dto.ArticleWithCommentsDto;
 import com.example.repository.ArticleRepository;
 import com.example.domain.type.SearchType;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityNotFoundException;
+
+@Slf4j
 @RequiredArgsConstructor
 @Transactional
 @Service
@@ -18,21 +23,53 @@ public class ArticleService {
     private final ArticleRepository articleRepository;
 
     @Transactional(readOnly = true)
-    public Page<ArticleDto> searchArticles(SearchType title, String search_keyword, Pageable pageable) {
-        return Page.empty();
+public Page<ArticleDto> searchArticles(SearchType searchType, String searchKeyword, Pageable pageable) {
+    if (searchKeyword == null || searchKeyword.isBlank()) {
+        // 검색어가 없는 경우이므로, 검색 로직을 수행하지 않고 게시물 전체를 모아서 보여주면 된다.
+        return articleRepository.findAll(pageable).map(ArticleDto::from);
     }
+
+        switch (searchType) {
+            case TITLE -> articleRepository.findByTitleContaining(searchKeyword, pageable);
+            case CONTENT -> articleRepository.findByContentContaining(searchKeyword, pageable);
+            case ID -> articleRepository.findByUserAccount_UserIdContaining(searchKeyword, pageable);
+            case NICKNAME -> articleRepository.findByUserAccount_NicknameContaining(searchKeyword, pageable);
+            case HASHTAG -> articleRepository.findByHashtag("#" + searchKeyword, pageable);
+            // TODO : 해시태그에 자동으로 #을 붙여주도록 함.
+            //  #을 사용자가 입력한 경우는 해당 코드로 해결 불가.
+            //  추후 리팩토링
+        }
+
+    return Page.empty();
+}
 
     @Transactional(readOnly = true)
     public ArticleWithCommentsDto getArticle(long articleId) {
-        return null;
+        return articleRepository.findById(articleId)
+                .map(ArticleWithCommentsDto::from)
+                .orElseThrow(() -> new EntityNotFoundException("게시글이 없습니다 - articleId: " + articleId));
     }
 
     public void saveArticle(ArticleDto dto) {
+        articleRepository.save(dto.toEntity());
     }
 
-    public void updateArticle(ArticleDto dto) {
+public void updateArticle(ArticleDto dto) {
+    try {
+        Article article = articleRepository.getReferenceById(dto.id());
+        if (dto.title() != null) {
+            article.setTitle(dto.title());
+        }
+        if (dto.content() != null) {
+            article.setContent(dto.content());
+        }
+        article.setHashtag(dto.hashtag());
+    } catch (EntityNotFoundException e) {
+        log.warn("게시글 업데이트 실패. 게시글을 찾을 수 없습니다 - dto: {}", dto);
     }
+}
 
     public void deleteArticle(long articleId) {
+        articleRepository.deleteById(articleId);
     }
 }

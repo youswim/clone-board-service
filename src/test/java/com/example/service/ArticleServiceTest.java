@@ -56,14 +56,14 @@ class ArticleServiceTest {
         SearchType searchType = SearchType.TITLE;
         String searchKeyword = "title";
         Pageable pageable = Pageable.ofSize(20);
-        given(articleRepository.findByTitle(searchKeyword, pageable)).willReturn(Page.empty());
+        given(articleRepository.findByTitleContaining(searchKeyword, pageable)).willReturn(Page.empty());
 
         // when
         Page<ArticleDto> articles = sut.searchArticles(searchType, searchKeyword, pageable);
 
         // then
         assertThat(articles).isEmpty();
-        then(articleRepository).should().findByTitle(searchKeyword, pageable);
+        then(articleRepository).should().findByTitleContaining(searchKeyword, pageable);
 
     }
 
@@ -157,14 +157,15 @@ class ArticleServiceTest {
     @Test
     void givenArticleId_whenDeletingArticle_thenDeleteArticles() {
         // given
-        willDoNothing().given(articleRepository).delete(any(Article.class));
+        Long articleId = 1L;
+        willDoNothing().given(articleRepository).deleteById(articleId);
         // 이 코드는 현재 테스트에 아무런 영향을 미치지 않는다.
 
         // when
         sut.deleteArticle(1L);
 
         // then
-        then(articleRepository).should().delete(any(Article.class));
+        then(articleRepository).should().deleteById(articleId);
     }
 
     private UserAccount createUserAccount() {
