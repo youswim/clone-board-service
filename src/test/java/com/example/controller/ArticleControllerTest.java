@@ -4,6 +4,7 @@ import com.example.config.SecurityConfig;
 import com.example.dto.ArticleWithCommentsDto;
 import com.example.dto.UserAccountDto;
 import com.example.service.ArticleService;
+import com.example.service.PaginationService;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -12,11 +13,14 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.eq;
@@ -33,6 +37,9 @@ class ArticleControllerTest {
     @MockBean
     private ArticleService articleService;
 
+    @MockBean
+    private PaginationService paginationService;
+
     ArticleControllerTest(@Autowired MockMvc mvc) {
         this.mvc = mvc;
     }
@@ -42,16 +49,48 @@ class ArticleControllerTest {
     public void giveNothing_whenRequestingArticlesView_thenReturnsArticlesView() throws Exception {
         // given
         given(articleService.searchArticles(eq(null), eq(null), any(Pageable.class))).willReturn(Page.empty());
+        given(paginationService.getPaginationBarNumbers(anyInt(), anyInt())).willReturn(List.of(0, 1, 2, 3, 4));
 
         // when & then
         mvc.perform(get("/articles"))
                 .andExpect(status().isOk()) // HTTP STATUS CODE가 OK인지
                 .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_HTML)) // CONTENT TYPE확인
                 .andExpect(view().name("articles/index")) // 반환되는 뷰의 이름 확인
-                .andExpect(model().attributeExists("articles"));// View로 넘기는 Model에 "articles"라는 이름의 key가 있는지
+                .andExpect(model().attributeExists("articles"))// View로 넘기는 Model에 "articles"라는 이름의 key가 있는지
+                .andExpect(model().attributeExists("paginationBarNumbers"));
 
         then(articleService).should().searchArticles(eq(null), eq(null), any(Pageable.class));
+        then(paginationService).should().getPaginationBarNumbers(anyInt(), anyInt());
     }
+
+    @DisplayName("[view][GET] 게시글 리스트 (게시판) 페이지 - 페이징, 정렬 기능")
+    @Test
+    void givenPagingAndSortingParams_whenSearchingArticlesPage_thenReturnsArticlePage() throws Exception {
+        // given
+        String sortName = "title";
+        String direction = "desc";
+        int pageNumber = 0;
+        int pageSize = 5;
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Order.desc(sortName))); // PageRequest를 업캐스팅
+        List<Integer> barNumbers = List.of(1, 2, 3, 4, 5);
+        given(articleService.searchArticles(null, null, pageable)).willReturn(Page.empty());
+        given(paginationService.getPaginationBarNumbers(pageable.getPageNumber(), Page.empty().getTotalPages())).willReturn(barNumbers);
+
+        // when & then
+        mvc.perform(
+                get("/articles")
+                        .queryParam("page", String.valueOf(pageNumber))
+                        .queryParam("size", String.valueOf(pageSize))
+                        .queryParam("sort", sortName + "," + direction))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_HTML)) // CONTENT TYPE확인
+                .andExpect(view().name("articles/index")) // 반환되는 뷰의 이름 확인
+                .andExpect(model().attributeExists("articles"))// View로 넘기는 Model에 "articles"라는 이름의 key가 있는지
+                .andExpect(model().attributeExists("paginationBarNumbers"));
+        then(articleService).should().searchArticles(null, null, pageable);
+        then(paginationService).should().getPaginationBarNumbers(pageable.getPageNumber(), Page.empty().getTotalPages());
+    }
+
     @DisplayName("[view][GET] 게시글 상세 페이지 - 정상 호출")
     @Test
     public void giveNothing_whenRequestingArticleView_thenReturnsArticleView() throws Exception {
@@ -69,6 +108,7 @@ class ArticleControllerTest {
 
         then(articleService).should().getArticle(articleId);
     }
+
     @Disabled
     @DisplayName("[view][GET] 게시글 검색 전용 페이지 - 정상 호출")
     @Test
@@ -80,6 +120,7 @@ class ArticleControllerTest {
                 .andExpect(view().name("articles/search"));
 
     }
+
     @Disabled
     @DisplayName("[view][GET] 게시글 해시태그 검색 페이지 - 정상 호출")
     @Test
