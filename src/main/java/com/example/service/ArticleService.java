@@ -23,11 +23,11 @@ public class ArticleService {
     private final ArticleRepository articleRepository;
 
     @Transactional(readOnly = true)
-public Page<ArticleDto> searchArticles(SearchType searchType, String searchKeyword, Pageable pageable) {
-    if (searchKeyword == null || searchKeyword.isBlank()) {
-        // 검색어가 없는 경우이므로, 검색 로직을 수행하지 않고 게시물 전체를 모아서 보여주면 된다.
-        return articleRepository.findAll(pageable).map(ArticleDto::from);
-    }
+    public Page<ArticleDto> searchArticles(SearchType searchType, String searchKeyword, Pageable pageable) {
+        if (searchKeyword == null || searchKeyword.isBlank()) {
+            // 검색어가 없는 경우이므로, 검색 로직을 수행하지 않고 게시물 전체를 모아서 보여주면 된다.
+            return articleRepository.findAll(pageable).map(ArticleDto::from);
+        }
 
         switch (searchType) {
             case TITLE -> articleRepository.findByTitleContaining(searchKeyword, pageable);
@@ -40,8 +40,8 @@ public Page<ArticleDto> searchArticles(SearchType searchType, String searchKeywo
             //  추후 리팩토링
         }
 
-    return Page.empty();
-}
+        return Page.empty();
+    }
 
     @Transactional(readOnly = true)
     public ArticleWithCommentsDto getArticle(long articleId) {
@@ -54,20 +54,20 @@ public Page<ArticleDto> searchArticles(SearchType searchType, String searchKeywo
         articleRepository.save(dto.toEntity());
     }
 
-public void updateArticle(ArticleDto dto) {
-    try {
-        Article article = articleRepository.getReferenceById(dto.id());
-        if (dto.title() != null) {
-            article.setTitle(dto.title());
+    public void updateArticle(ArticleDto dto) {
+        try {
+            Article article = articleRepository.getReferenceById(dto.id());
+            if (dto.title() != null) {
+                article.setTitle(dto.title());
+            }
+            if (dto.content() != null) {
+                article.setContent(dto.content());
+            }
+            article.setHashtag(dto.hashtag());
+        } catch (EntityNotFoundException e) {
+            log.warn("게시글 업데이트 실패. 게시글을 찾을 수 없습니다 - dto: {}", dto);
         }
-        if (dto.content() != null) {
-            article.setContent(dto.content());
-        }
-        article.setHashtag(dto.hashtag());
-    } catch (EntityNotFoundException e) {
-        log.warn("게시글 업데이트 실패. 게시글을 찾을 수 없습니다 - dto: {}", dto);
     }
-}
 
     public void deleteArticle(long articleId) {
         articleRepository.deleteById(articleId);
