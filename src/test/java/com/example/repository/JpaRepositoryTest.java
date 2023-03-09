@@ -47,13 +47,14 @@ class JpaRepositoryTest {
     @Test
     void insertTest() {
 
-        long prevCount = articleRepository.count();
+        // given
+        long prevCount = userAccountRepository.count();
 
-        Article save = articleRepository.save(Article.of(UserAccount.of("atsdt", "123", "hel@g.c", "spongebobo", "daepa"), "hello", "cont", "#test"));
-        System.out.println(save.getId());
+        // when
+        userAccountRepository.save(UserAccount.of("atsdt", "123", "hel@g.c", "spongebobo", "daepa"));
 
-        Assertions.assertThat(articleRepository.count()).isEqualTo(prevCount + 1);
-
+        // then
+        Assertions.assertThat(userAccountRepository.count()).isEqualTo(prevCount + 1);
     }
 
     @DisplayName("update 테스트")
@@ -85,7 +86,7 @@ class JpaRepositoryTest {
         articleRepository.delete(article);
         //then
 
-        Assertions.assertThat(previousArticleCount).isEqualTo(articleRepository.count() + 1);
+        Assertions.assertThat(previousArticleCount).isEqualTo(articleRepository.count()+ 1);
         Assertions.assertThat(previousArticleCommentCount).isEqualTo(articleCommentRepository.count() + deletedCommentSize);
 
     }
