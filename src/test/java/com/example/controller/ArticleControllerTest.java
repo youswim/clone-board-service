@@ -1,6 +1,7 @@
 package com.example.controller;
 
 import com.example.config.SecurityConfig;
+import com.example.domain.type.SearchType;
 import com.example.dto.ArticleWithCommentsDto;
 import com.example.dto.UserAccountDto;
 import com.example.service.ArticleService;
@@ -60,6 +61,31 @@ class ArticleControllerTest {
                 .andExpect(model().attributeExists("paginationBarNumbers"));
 
         then(articleService).should().searchArticles(eq(null), eq(null), any(Pageable.class));
+        then(paginationService).should().getPaginationBarNumbers(anyInt(), anyInt());
+    }
+
+    @DisplayName("[view][GET] 게시글 리스트 (게시판) 페이지 - 검색어와 함께 호출")
+    @Test
+    public void giveSearchKeyword_whenRequestingArticlesView_thenReturnsArticlesView() throws Exception {
+        // given
+        SearchType searchType = SearchType.TITLE;
+        String searchValue = "title";
+
+        given(articleService.searchArticles(eq(searchType), eq(searchValue), any(Pageable.class))).willReturn(Page.empty());
+        given(paginationService.getPaginationBarNumbers(anyInt(), anyInt())).willReturn(List.of(0, 1, 2, 3, 4));
+
+        // when & then
+        mvc.perform(
+                get("/articles")
+                        .queryParam("searchType", searchType.name())
+                        .queryParam("searchValue", searchValue)
+                )
+                .andExpect(status().isOk()) // HTTP STATUS CODE가 OK인지
+                .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_HTML)) // CONTENT TYPE확인
+                .andExpect(view().name("articles/index")) // 반환되는 뷰의 이름 확인
+                .andExpect(model().attributeExists("articles"))// View로 넘기는 Model에 "articles"라는 이름의 key가 있는지
+                .andExpect(model().attributeExists("searchTypes"));
+        then(articleService).should().searchArticles(eq(searchType), eq(searchValue), any(Pageable.class));
         then(paginationService).should().getPaginationBarNumbers(anyInt(), anyInt());
     }
 
