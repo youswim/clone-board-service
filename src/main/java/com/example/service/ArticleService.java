@@ -29,18 +29,16 @@ public class ArticleService {
             return articleRepository.findAll(pageable).map(ArticleDto::from);
         }
 
-        switch (searchType) {
-            case TITLE -> articleRepository.findByTitleContaining(searchKeyword, pageable);
-            case CONTENT -> articleRepository.findByContentContaining(searchKeyword, pageable);
-            case ID -> articleRepository.findByUserAccount_UserIdContaining(searchKeyword, pageable);
-            case NICKNAME -> articleRepository.findByUserAccount_NicknameContaining(searchKeyword, pageable);
-            case HASHTAG -> articleRepository.findByHashtag("#" + searchKeyword, pageable);
+        return switch (searchType) {
+            case TITLE -> articleRepository.findByTitleContaining(searchKeyword, pageable).map(ArticleDto::from);
+            case CONTENT -> articleRepository.findByContentContaining(searchKeyword, pageable).map(ArticleDto::from);
+            case ID -> articleRepository.findByUserAccount_UserIdContaining(searchKeyword, pageable).map(ArticleDto::from);
+            case NICKNAME -> articleRepository.findByUserAccount_NicknameContaining(searchKeyword, pageable).map(ArticleDto::from);
+            case HASHTAG -> articleRepository.findByHashtag("#" + searchKeyword, pageable).map(ArticleDto::from);
             // TODO : 해시태그에 자동으로 #을 붙여주도록 함.
             //  #을 사용자가 입력한 경우는 해당 코드로 해결 불가.
             //  추후 리팩토링
-        }
-
-        return Page.empty();
+        };
     }
 
     @Transactional(readOnly = true)
