@@ -122,7 +122,9 @@ class ArticleControllerTest {
     public void giveNothing_whenRequestingArticleView_thenReturnsArticleView() throws Exception {
         // given
         Long articleId = 1L;
-        given(articleService.getArticle(articleId)).willReturn(createArticleWithCommentsDto());
+        long totalCount = 1L;
+        given(articleService.getArticleWithComments(articleId)).willReturn(createArticleWithCommentsDto());
+        given(articleService.getArticleCount()).willReturn(totalCount);
 
         // when & then
         mvc.perform(get("/articles/" + articleId))
@@ -130,9 +132,11 @@ class ArticleControllerTest {
                 .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_HTML))
                 .andExpect(view().name("articles/detail"))
                 .andExpect(model().attributeExists("article")) // 게시글
-                .andExpect(model().attributeExists("articleComments")); // 댓글
+                .andExpect(model().attributeExists("articleComments")) // 댓글
+                .andExpect(model().attribute("totalCount", totalCount));
 
-        then(articleService).should().getArticle(articleId);
+        then(articleService).should().getArticleWithComments(articleId);
+        then(articleService).should().getArticleCount();
     }
 
     @Disabled
@@ -196,6 +200,8 @@ class ArticleControllerTest {
         then(articleService).should().getHashtags();
         then(paginationService).should().getPaginationBarNumbers(anyInt(), anyInt());
     }
+
+
 
 
     private ArticleWithCommentsDto createArticleWithCommentsDto() {
