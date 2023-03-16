@@ -72,6 +72,9 @@ public class ArticleService {
         articleRepository.deleteById(articleId);
     }
 
+    public long getArticleCount() {
+        return articleRepository.count();
+    }
 
     @Transactional
     public Page<ArticleDto> searchArticlesViaHashtag(String hashtag, Pageable pageable) {

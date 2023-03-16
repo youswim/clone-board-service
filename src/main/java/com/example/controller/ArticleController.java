@@ -47,6 +47,7 @@ public class ArticleController {
         ArticleWithCommentsResponse article = ArticleWithCommentsResponse.from(articleService.getArticle(articleId));
         map.addAttribute("article", article); // TODO: 실제 데이터를 찾아서 넣어줘야 하는 부분
         map.addAttribute("articleComments", article.articleCommentsResponse());
+        map.addAttribute("totalCount", articleService.getArticleCount());
 
         return "articles/detail";
     }
