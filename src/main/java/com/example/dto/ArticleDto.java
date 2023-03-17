@@ -1,6 +1,7 @@
 package com.example.dto;
 
 import com.example.domain.Article;
+import com.example.domain.UserAccount;
 
 import java.time.LocalDateTime;
 /**
@@ -39,9 +40,9 @@ public record ArticleDto(
         );
     }
 
-    public Article toEntity() {
+    public Article toEntity(UserAccount userAccount) {
         return Article.of(
-                userAccountDto.toEntity(),
+                userAccount,
                 title,
                 content,
                 hashtag
