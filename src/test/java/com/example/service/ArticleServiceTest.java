@@ -2,7 +2,7 @@ package com.example.service;
 
 import com.example.domain.Article;
 import com.example.domain.UserAccount;
-import com.example.domain.type.SearchType;
+import com.example.domain.constant.SearchType;
 import com.example.dto.ArticleDto;
 import com.example.dto.ArticleWithCommentsDto;
 import com.example.dto.UserAccountDto;
