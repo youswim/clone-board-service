@@ -53,7 +53,7 @@ public class ArticleCommentService {
         }
     }
 
-    public void deleteArticleComment(Long articleCommentId) {
-        articleCommentRepository.deleteById(articleCommentId); // delete문 실행하려면 select한 다음에 삭제하지 않는지?
+    public void deleteArticleComment(Long articleCommentId, String userId) {
+        articleCommentRepository.deleteByIdAndUserAccount_UserId(articleCommentId, userId); // delete문 실행하려면 select한 다음에 삭제하지 않는지?
     }
 }
