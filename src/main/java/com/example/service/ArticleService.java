@@ -69,7 +69,7 @@ public class ArticleService {
             Article article = articleRepository.getReferenceById(articleId);
             UserAccount userAccount = userAccountRepository.getReferenceById(dto.userAccountDto().userId());
 
-            if (article.getUserAccount().equals(userAccount)) { // 게시글 작성자와 수정자가 동일한 경우 수행
+            if (article.getUserAccount().getUserId().equals(userAccount.getUserId())) { // 게시글 작성자와 수정자가 동일한 경우 수행
                 if (dto.title() != null) {
                     article.setTitle(dto.title());
                 }
