@@ -14,7 +14,6 @@ import java.util.Set;
 @ToString(callSuper = true)
 @Table(indexes = {
         @Index(columnList = "title"),
-        @Index(columnList = "hashtag"),
         @Index(columnList = "createdAt"),
         @Index(columnList = "createdBy")
 })
@@ -41,7 +40,7 @@ public class Article extends AuditingFields{
 
     @ToString.Exclude
     @JoinTable(
-            name = "article_hahstag",
+            name = "article_hashtag",
             joinColumns = @JoinColumn(name = "articleId"),
             inverseJoinColumns = @JoinColumn(name = "hashtagId")
     )
