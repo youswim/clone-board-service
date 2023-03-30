@@ -1,5 +1,6 @@
 package com.example.service;
 
+import com.example.domain.Article;
 import com.example.domain.Hashtag;
 import com.example.repository.HashtagRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -11,15 +12,16 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.then;
+import static org.mockito.BDDMockito.*;
 
 @DisplayName("비즈니스 로직 - 해시태그")
 @ExtendWith(MockitoExtension.class)
@@ -107,26 +109,46 @@ class HashtagServiceTest {
     @Test
     void givenHashtagId_whenHashtagNotHaveArticle_thenDeleteHashtag(){
         // given
+        Long hashtagId = 1L;
+        Hashtag hashtag = createHashtag();
+        ReflectionTestUtils.setField(hashtag, "articles", Set.of());
+        given(hashtagRepository.findById(hashtagId)).willReturn(Optional.of(hashtag));
+//        willDoNothing().given(hashtagRepository).delete(hashtag);
 
         // when
+        sut.deleteHashtagWithoutArticles(hashtagId);
+
 
         // then
+        then(hashtagRepository).should().findById(hashtagId);
+        then(hashtagRepository).should().delete(hashtag);
 
     }
 
     @DisplayName("해시태그의 ID를 입력했을 때, 해당 해시태그를 갖는 게시물이 있다면 삭제하지 않음")
     @Test
-    void givenHashtagId_whenHashtag_then(){
+    void givenHashtagId_whenHashtagHaveArticle_thenNotDeleteHashtag(){
         // given
+        Long hashtagId = 1L;
+        Hashtag hashtag = createHashtag();
+        ReflectionTestUtils.setField(hashtag, "articles", Set.of(createArticle()));
+        given(hashtagRepository.findById(hashtagId)).willReturn(Optional.of(hashtag));
+//        willDoNothing().given(hashtagRepository).delete(hashtag);
 
         // when
+        sut.deleteHashtagWithoutArticles(hashtagId);
+
 
         // then
-
+        then(hashtagRepository).should().findById(hashtagId);
     }
 
     private Hashtag createHashtag() {
         return Hashtag.of("test");
+    }
+
+    private Article createArticle() {
+        return Article.of(null, null, null);
     }
 
 }
