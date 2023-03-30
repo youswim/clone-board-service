@@ -113,7 +113,7 @@ class HashtagServiceTest {
         Hashtag hashtag = createHashtag();
         ReflectionTestUtils.setField(hashtag, "articles", Set.of());
         given(hashtagRepository.findById(hashtagId)).willReturn(Optional.of(hashtag));
-//        willDoNothing().given(hashtagRepository).delete(hashtag);
+        willDoNothing().given(hashtagRepository).delete(hashtag);
 
         // when
         sut.deleteHashtagWithoutArticles(hashtagId);
@@ -133,7 +133,6 @@ class HashtagServiceTest {
         Hashtag hashtag = createHashtag();
         ReflectionTestUtils.setField(hashtag, "articles", Set.of(createArticle()));
         given(hashtagRepository.findById(hashtagId)).willReturn(Optional.of(hashtag));
-//        willDoNothing().given(hashtagRepository).delete(hashtag);
 
         // when
         sut.deleteHashtagWithoutArticles(hashtagId);
@@ -141,6 +140,8 @@ class HashtagServiceTest {
 
         // then
         then(hashtagRepository).should().findById(hashtagId);
+        verify(hashtagRepository, never()).delete(hashtag); // 호출되지 않아야 함.
+
     }
 
     private Hashtag createHashtag() {
