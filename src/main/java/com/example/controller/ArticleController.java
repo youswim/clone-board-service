@@ -40,6 +40,8 @@ public class ArticleController {
         map.addAttribute("articles", articles);
         map.addAttribute("paginationBarNumbers", barNumbers);
         map.addAttribute("searchTypes", SearchType.values());
+        map.addAttribute("searchTypeHashtag", SearchType.HASHTAG);
+
         return "articles/index";
     }
 
@@ -49,6 +51,7 @@ public class ArticleController {
         map.addAttribute("article", article); // TODO: 실제 데이터를 찾아서 넣어줘야 하는 부분
         map.addAttribute("articleComments", article.articleCommentsResponse());
         map.addAttribute("totalCount", articleService.getArticleCount());
+        map.addAttribute("searchTypeHashtag", SearchType.HASHTAG);
 
         return "articles/detail";
     }
