@@ -105,7 +105,8 @@ class ArticleServiceTest {
         // Given
         String hashtagName = "nonExist";
         Pageable pageable = Pageable.ofSize(20);
-        given(articleRepository.findByHashtagNames(List.of(hashtagName), pageable)).willReturn(new PageImpl<>(List.of(), pageable, 0));
+        given(articleRepository.findByHashtagNames(List.of(hashtagName), pageable))
+                .willReturn(new PageImpl<>(List.of(), pageable, 0));
 
         // When
         Page<ArticleDto> articles = sut.searchArticlesViaHashtag(hashtagName, pageable);
@@ -187,7 +188,7 @@ class ArticleServiceTest {
         assertThat(dto)
                 .hasFieldOrPropertyWithValue("title", article.getTitle())
                 .hasFieldOrPropertyWithValue("content", article.getContent())
-                .hasFieldOrPropertyWithValue("hashtag", article.getHashtags().stream()
+                .hasFieldOrPropertyWithValue("hashtagDtos", article.getHashtags().stream()
                         .map(HashtagDto::from)
                         .collect(Collectors.toUnmodifiableSet())
                 );
