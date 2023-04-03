@@ -2,9 +2,10 @@ package com.example.repository;
 
 
 import com.example.domain.Article;
+import com.example.domain.ArticleComment;
 import com.example.domain.Hashtag;
 import com.example.domain.UserAccount;
-import org.assertj.core.api.Assertions;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +23,8 @@ import org.springframework.test.context.ActiveProfiles;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 
 @ActiveProfiles("testdb")
@@ -51,7 +54,7 @@ class JpaRepositoryTest {
 
         List<Article> articles = articleRepository.findAll();
 
-         Assertions.assertThat(articles).isNotNull().hasSize(123);
+         assertThat(articles).isNotNull().hasSize(123);
     }
 
     @DisplayName("insert 테스트")
@@ -68,7 +71,7 @@ class JpaRepositoryTest {
         articleRepository.save(article);
 
         // then
-        Assertions.assertThat(userAccountRepository.count()).isEqualTo(prevCount + 1);
+        assertThat(userAccountRepository.count()).isEqualTo(prevCount + 1);
     }
 
     @DisplayName("update 테스트")
@@ -84,7 +87,7 @@ class JpaRepositoryTest {
         Article savedArticle = articleRepository.saveAndFlush(article);
 
         // When
-        Assertions.assertThat(savedArticle.getHashtags())
+        assertThat(savedArticle.getHashtags())
                 .hasSize(1)
                 .extracting("hashtagName", String.class)
                 .containsExactly(updateHashtag.getHashtagName());
@@ -105,9 +108,74 @@ class JpaRepositoryTest {
         articleRepository.delete(article);
         //then
 
-        Assertions.assertThat(previousArticleCount).isEqualTo(articleRepository.count()+ 1);
-        Assertions.assertThat(previousArticleCommentCount).isEqualTo(articleCommentRepository.count() + deletedCommentSize);
+        assertThat(previousArticleCount).isEqualTo(articleRepository.count()+ 1);
+        assertThat(previousArticleCommentCount).isEqualTo(articleCommentRepository.count() + deletedCommentSize);
     }
+
+    @DisplayName("대댓글 조회 테스트")
+    @Test
+    void givenParentCommentId_whenSelectiong_thenReturnsChildComments(){
+        // given
+
+        // when
+        Optional<ArticleComment> parentComment = articleCommentRepository.findById(1L);
+
+        // then
+        assertThat(parentComment).get()
+                .hasFieldOrPropertyWithValue("parentCommentId", null)
+                .extracting("childComments", InstanceOfAssertFactories.COLLECTION)
+                .hasSize(4);
+    }
+
+    @DisplayName("댓글에 대댓글 삽입 테스트")
+    @Test
+    void givenParentComment_whenSaving_thenInsertsChildComment(){
+        // given
+        ArticleComment parentComment = articleCommentRepository.getReferenceById(1L);
+        ArticleComment childComment = ArticleComment.of(
+                parentComment.getArticle(),
+                parentComment.getUserAccount(),
+                "대댓글 내용"); // 이거 가져오느라 SELECT쿼리 한번
+
+        // when
+        parentComment.addChildComment(childComment); // 여기서 getChildComments 하느라 SELECT 쿼리 한번
+        articleCommentRepository.flush();
+
+        // then
+        assertThat(articleCommentRepository.findById(1L)).get()
+                .hasFieldOrPropertyWithValue("parentCommentId", null)
+                .extracting("childComments", InstanceOfAssertFactories.COLLECTION)
+                .hasSize(5);
+    }
+
+    @DisplayName("댓글 삭제와 대댓글 전체 연동 삭제 테스트")
+    @Test
+    void givenArticleCommentHavingChildComments_whenDeletingParentComment_thenDeletesEveryComment(){
+        // given
+        ArticleComment parentComment = articleCommentRepository.getReferenceById(1L);
+        long previousArticleCommentCount = articleCommentRepository.count();
+
+        // when
+        articleCommentRepository.delete(parentComment);
+
+        // then
+        assertThat(articleCommentRepository.count()).isEqualTo(previousArticleCommentCount - 5);
+    }
+
+    @DisplayName("댓글 삭제와 대댓글 전체 연동 삭제 테스트 - 댓글 ID + 유저 ID")
+    @Test
+    void givenArticleCommentIdHavingChildCommentsAndUserId_whenDeletingParentComment_thenDeletesEveryComment(){
+        // given
+        long previousArticleCommentCount = articleCommentRepository.count();
+
+        // when
+        articleCommentRepository.deleteByIdAndUserAccount_UserId(1L, "uno");
+
+        // then
+        assertThat(articleCommentRepository.count()).isEqualTo(previousArticleCommentCount - 5);
+    }
+
+
 
     @DisplayName("[QueryDSL 전체 hashtag 리스트에서 이름만 조회하기")
     @Test
@@ -118,7 +186,7 @@ class JpaRepositoryTest {
         List<String> hashtagNames = hashtagRepository.findAllHashtagNames();
 
         // then
-        Assertions.assertThat(hashtagNames).hasSize(19);
+        assertThat(hashtagNames).hasSize(19);
     }
 
     @DisplayName("[QueryDSL] hashtag로 페이징된 게시글 검색하기")
@@ -134,13 +202,13 @@ class JpaRepositoryTest {
         Page<Article> articlePage = articleRepository.findByHashtagNames(hashtagNames, pageable);
 
         // then
-        Assertions.assertThat(articlePage.getContent()).hasSize(pageable.getPageSize());
-        Assertions.assertThat(articlePage.getContent().get(0).getTitle()).isEqualTo("Fusce posuere felis sed lacus.");
-        Assertions.assertThat(articlePage.getContent().get(0).getHashtags())
+        assertThat(articlePage.getContent()).hasSize(pageable.getPageSize());
+        assertThat(articlePage.getContent().get(0).getTitle()).isEqualTo("Fusce posuere felis sed lacus.");
+        assertThat(articlePage.getContent().get(0).getHashtags())
                 .extracting("hashtagName", String.class)
                 .containsExactly("fuscia");
-        Assertions.assertThat(articlePage.getTotalElements()).isEqualTo(17);
-        Assertions.assertThat(articlePage.getTotalPages()).isEqualTo(4);
+        assertThat(articlePage.getTotalElements()).isEqualTo(17);
+        assertThat(articlePage.getTotalPages()).isEqualTo(4);
 
     }
 
