@@ -148,6 +148,7 @@ class ArticleCommentServiceTest {
                 1L,
                 1L,
                 createUserAccountDto(),
+                null,
                 content,
                 LocalDateTime.now(),
                 "uno",
