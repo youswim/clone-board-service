@@ -23,7 +23,7 @@ public class UserAccountService {
 
     public UserAccountDto saveUser(String username, String password, String email, String nickname, String memo) {
         return UserAccountDto.from(
-                userAccountRepository.save(UserAccount.of(username, password, email, nickname, memo))
+                userAccountRepository.save(UserAccount.of(username, password, email, nickname, memo, username))
         );
     }
 }
