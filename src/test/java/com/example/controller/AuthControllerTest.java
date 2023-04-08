@@ -1,7 +1,7 @@
 package com.example.controller;
 
 
-import com.example.config.SecurityConfig;
+import com.example.config.TestSecurityConfig;
 import com.example.repository.UserAccountRepository;
 import com.example.service.ArticleCommentService;
 import com.example.service.ArticleService;
@@ -20,7 +20,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @DisplayName("View 컨트롤러 - 인증")
-@Import({SecurityConfig.class})
+@Import({TestSecurityConfig.class})
 @WebMvcTest
 public class AuthControllerTest {
 
